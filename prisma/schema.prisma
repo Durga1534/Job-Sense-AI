@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Job {
+  id           String       @id @default(cuid())
+  externalId   String       @unique
+  title        String
+  company      String
+  description  String
+  requirements String
+  skills       String[]
+  salaryMin    Int?
+  salaryMax    Int?
+  location     String?
+  remote       Boolean      @default(false)
+  source       String
+  applyUrl     String
+  matchScore   Int?
+  matchLevel   String?
+  assessment   Json?
+  notifiedAt   DateTime?
+  scrapedAt    DateTime     @default(now())
+  applications Application[]
+}
+
+model ResumeVersion {
+  id           String   @id @default(cuid())
+  version      Int
+  content      Json
+  healthScore  Int
+  breakdown     Json
+  actions      String[]
+  createdAt    DateTime @default(now())
+}
+
+model Application {
+  id        String   @id @default(cuid())
+  job       Job      @relation(fields: [jobId], references: [id])
+  jobId     String
+  status    String   @default("applied")
+  notes     String?
+  appliedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DailyRun {
+  id           String   @id @default(cuid())
+  jobsScraped  Int
+  jobsNew      Int
+  jobsScored   Int
+  topScore     Int?
+  topCompany   String?
+  ranAt        DateTime @default(now())
+}
