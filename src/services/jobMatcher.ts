@@ -17,15 +17,15 @@ export class JobMatcherService {
 
     return {
       skills: user.skills || [],
-      experienceLevel: user.experienceLevel || 'mid',
+      experienceLevel: (user.experienceLevel as any) || 'mid',
       locationPreference: user.locationPreference || [],
       salaryRange: {
         min: user.salaryMin || 0,
         max: user.salaryMax || 200000,
       },
-      companySize: user.companySize,
-      industry: user.industry,
-      remotePreference: user.remotePreference || 'remote',
+      companySize: user.companySize as any || undefined,
+      industry: user.industry || [],
+      remotePreference: (user.remotePreference as any) || 'remote',
     };
   }
 

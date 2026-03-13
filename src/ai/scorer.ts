@@ -29,10 +29,12 @@ SCORING RULES — follow strictly:
 - Candidate target salary is 6-15 LPA. If job salary is clearly below 6 LPA or above 20 LPA: set salaryFit to "Out of range"
 - If salary is not mentioned: set salaryFit to "Not specified"
 - A fresher with strong projects scores max 75
-- Set STRONG only if: job is junior/fresher friendly AND 4+ skills match AND salary is in range or not specified
-- Set GOOD if: experience is 0-2 years AND 3+ skills match
-- Set WEAK if: experience gap exists OR fewer than 3 skills match
+- Set STRONG only if: job is junior/fresher friendly AND 3+ skills match AND salary is in range or not specified
+- Set GOOD if: experience is 0-2 years AND 2+ skills match
+- Set WEAK if: experience gap exists OR fewer than 2 skills match
 - Set SKIP if: 3+ years required OR completely wrong tech stack
+- BE MORE LENIENT: Consider related skills (Node.js -> Backend, React -> Frontend, TypeScript -> JavaScript)
+- Prioritize remote jobs and Bangalore location for higher scores
 
 Respond with ONLY a JSON object. No notes, no explanation, no text before or after the JSON:
 ${JSON.stringify(jobScoreSchema.shape, null, 2)}`;

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import redis from '../cache/redis';
 
 export const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
@@ -26,4 +27,16 @@ export function createAxiosInstance() {
       'User-Agent': randomUserAgent(),
     },
   });
+}
+
+export async function deduplicateJob(job: { title: string; company: string; externalId?: string }): Promise<boolean> {
+  const key = `job:${job.company}:${job.title}`;
+  const exists = await redis.exists(key);
+  
+  if (!exists) {
+    await redis.setex(key, 86400, '1'); // 24 hours TTL
+    return true;
+  }
+  
+  return false;
 }

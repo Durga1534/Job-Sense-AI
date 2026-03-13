@@ -11,7 +11,7 @@ export interface RawJob {
   location: string;
   remote?: boolean;
   applyUrl: string;
-  source: 'adzuna' | 'naukri' | 'remotive' | 'arbeitnow';
+  source: 'adzuna' | 'naukri' | 'remotive' | 'arbeitnow' | 'cutshort' | 'hirect' | 'wellfound';
   postedAt: string;
 }
 
