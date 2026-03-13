@@ -25,9 +25,9 @@ export class JobMatchingEngine {
     Description: ${job.description}
     Company: ${job.company}
     Location: ${job.location}
-    Salary: ${job.salary}
+    Salary Range: $${job.salaryMin || 'Not specified'} - $${job.salaryMax || 'Not specified'}
     Remote: ${job.remote}
-    Experience Level: ${job.experienceLevel}
+    Required Skills: ${job.skills.join(', ')}
 
     Candidate Criteria:
     Skills: ${criteria.skills.join(', ')}
