@@ -45,42 +45,34 @@ export async function scoreJob(job: RawJob): Promise<JobScore> {
     };
   }
   
-  // Truncate job description to save tokens
+  // Further truncate to save tokens
   const truncatedJob = {
-    ...job,
-    description: job.description?.slice(0, 500) + (job.description?.length > 500 ? '...' : ''),
-    requirements: job.requirements?.slice(0, 200) + (job.requirements?.length > 200 ? '...' : ''),
+    title: job.title,
+    company: job.company,
+    skills: job.skills?.slice(0, 5).join(', ') || '',
+    salary: `${job.salaryMin || 'Not specified'} - ${job.salaryMax || 'Not specified'}`,
+    location: job.location,
+    remote: job.remote,
+    description: job.description?.slice(0, 300) + (job.description?.length > 300 ? '...' : ''),
   };
 
-  const prompt = `Score this job for a FRESHER candidate (0 years exp, strong projects):
+  const prompt = `Score job for FRESHER (0 years):
 
-CANDIDATE:
-- Skills: Node.js, TypeScript, Express, React, PostgreSQL, MongoDB, Redis, Docker
-- Target: 6-15 LPA, Bangalore/Remote
-- Projects: Rate Limiter API, Subscription Tracker, Voice AI Platform
+Skills: Node.js, TypeScript, React, PostgreSQL
+Target: 6-15 LPA, Bangalore/Remote
 
-JOB:
-Title: ${truncatedJob.title}
-Company: ${truncatedJob.company}
-Skills: ${truncatedJob.skills?.join(', ')}
-Salary: ${truncatedJob.salaryMin || 'Not specified'} - ${truncatedJob.salaryMax || 'Not specified'}
-Location: ${truncatedJob.location}
-Remote: ${truncatedJob.remote}
-Description: ${truncatedJob.description}
-Fresher Friendly: ${isFresherFriendly}
+Job: ${JSON.stringify(truncatedJob)}
 
-RULES:
-- This is a FRESHER (0 years) candidate
-- Only award STRONG for 0-1 years experience jobs
-- 2 years exp = WEAK (max 45) - NEVER STRONG
-- Salary <6L or >20L = "Out of range"
-- Remote/Bangalore = boost score
-- Related skills count (Node.js→Backend, React→Frontend)
-- For STRONG: must be fresher-friendly AND 3+ skills match AND salary in range
+Rules:
+- 3+ years = SKIP
+- 2 years = WEAK  
+- 0-1 years = score normally
+- Remote/Bangalore = boost
+- Related skills count
 
 Return JSON:
-${JSON.stringify(jobScoreSchema.shape, null, 2)}`;
+{"score": 0-100, "matchLevel": "STRONG|GOOD|WEAK|SKIP", "matchingSkills": [], "missingSkills": [], "experienceGap": "", "whyApply": "", "salaryFit": ""}`;
 
-  const result = await callAI(prompt, 800); // Reduced from 1500 tokens
+  const result = await callAI(prompt, 400); // Further reduced from 800
   return jobScoreSchema.parse(result);
 }

@@ -2,7 +2,6 @@ import { RawJob } from '@/types';
 import { scrapeAdzuna } from './adzuna';
 import { scrapeRemotive } from './remotive';
 import { scrapeArbeitnow } from './arbeitnow';
-import { scrapeLinkedIn } from './linkedin';
 
 export async function runAllScrapers(): Promise<RawJob[]> {
   const results: RawJob[] = [];
@@ -10,11 +9,10 @@ export async function runAllScrapers(): Promise<RawJob[]> {
     scrapeAdzuna(),
     scrapeRemotive(),
     scrapeArbeitnow(),
-    scrapeLinkedIn(),
   ]);
   settled.forEach((r, i) => {
     if (r.status === 'fulfilled') {
-      const source = ['adzuna', 'remotive', 'arbeitnow', 'github-jobs'][i];
+      const source = ['adzuna', 'remotive', 'arbeitnow'][i];
       console.log(`scraper ${source} succeeded, got ${r.value.length}`);
       results.push(...r.value);
     } else {

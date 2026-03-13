@@ -65,7 +65,13 @@ router.post(
 
       const scored: any[] = [];
 
-      for (const job of fresherJobs.slice(0, 10)) {
+      // Limit to 5 jobs per day to stay within token limits
+      const MAX_JOBS_PER_DAY = 5;
+      const jobsToScore = fresherJobs.slice(0, MAX_JOBS_PER_DAY);
+
+      console.log(`Scoring top ${jobsToScore.length} jobs (limit: ${MAX_JOBS_PER_DAY})`);
+
+      for (const job of jobsToScore) {
         const score = await scoreJob(job);
 
         if (score.matchLevel === 'SKIP' || score.matchLevel === 'WEAK') {
