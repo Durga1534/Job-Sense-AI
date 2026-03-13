@@ -14,31 +14,40 @@ const jobScoreSchema = z.object({
 });
 
 export async function scoreJob(job: RawJob): Promise<JobScore> {
-  const prompt = `You are a senior technical recruiter evaluating this job posting against the candidate resume below.
+  // Truncate job description to save tokens
+  const truncatedJob = {
+    ...job,
+    description: job.description?.slice(0, 500) + (job.description?.length > 500 ? '...' : ''),
+    requirements: job.requirements?.slice(0, 200) + (job.requirements?.length > 200 ? '...' : ''),
+  };
 
-CANDIDATE RESUME:
-${JSON.stringify(MY_RESUME, null, 2)}
+  const prompt = `Score this job for a FRESHER candidate (0 years exp, strong projects):
 
-JOB POSTING:
-${JSON.stringify(job, null, 2)}
+CANDIDATE:
+- Skills: Node.js, TypeScript, Express, React, PostgreSQL, MongoDB, Redis, Docker
+- Target: 6-15 LPA, Bangalore/Remote
+- Projects: Rate Limiter API, Subscription Tracker, Voice AI Platform
 
-SCORING RULES — follow strictly:
-- If job requires 3+ years experience: matchLevel SKIP, score max 25
-- If job requires 2 years experience: matchLevel WEAK, score max 45
-- If job requires 0-1 years OR is fresher/junior/entry-level friendly: score based on skills
-- Candidate target salary is 6-15 LPA. If job salary is clearly below 6 LPA or above 20 LPA: set salaryFit to "Out of range"
-- If salary is not mentioned: set salaryFit to "Not specified"
-- A fresher with strong projects scores max 75
-- Set STRONG only if: job is junior/fresher friendly AND 3+ skills match AND salary is in range or not specified
-- Set GOOD if: experience is 0-2 years AND 2+ skills match
-- Set WEAK if: experience gap exists OR fewer than 2 skills match
-- Set SKIP if: 3+ years required OR completely wrong tech stack
-- BE MORE LENIENT: Consider related skills (Node.js -> Backend, React -> Frontend, TypeScript -> JavaScript)
-- Prioritize remote jobs and Bangalore location for higher scores
+JOB:
+Title: ${truncatedJob.title}
+Company: ${truncatedJob.company}
+Skills: ${truncatedJob.skills?.join(', ')}
+Salary: ${truncatedJob.salaryMin || 'Not specified'} - ${truncatedJob.salaryMax || 'Not specified'}
+Location: ${truncatedJob.location}
+Remote: ${truncatedJob.remote}
+Description: ${truncatedJob.description}
 
-Respond with ONLY a JSON object. No notes, no explanation, no text before or after the JSON:
+RULES:
+- 3+ years exp = SKIP (max 25)
+- 2 years exp = WEAK (max 45)  
+- 0-1 years/fresher = score normally
+- Salary <6L or >20L = "Out of range"
+- Remote/Bangalore = boost score
+- Related skills count (Node.js→Backend, React→Frontend)
+
+Return JSON:
 ${JSON.stringify(jobScoreSchema.shape, null, 2)}`;
 
-  const result = await callAI(prompt, 1500);
+  const result = await callAI(prompt, 800); // Reduced from 1500 tokens
   return jobScoreSchema.parse(result);
 }

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import prisma from '../db/client';
 import { JobMatcherService } from '../services/jobMatcher';
 import { JobMatchCriteria } from '../types/matching';
+import { usageTracker } from '../ai/usageTracker';
 
 const router = Router();
 const jobMatcher = new JobMatcherService();
@@ -20,6 +21,30 @@ router.get('/:id', async (req, res) => {
   const job = await prisma.job.findUnique({ where: { id: req.params.id } });
   if (!job) return res.status(404).json({ error: 'Not found' });
   res.json(job);
+});
+
+// AI Usage monitoring endpoint
+router.get('/usage/stats', async (req, res) => {
+  try {
+    const stats = await usageTracker.getUsageStats();
+    const isNearLimit = usageTracker.isNearLimit(stats);
+    
+    res.json({
+      stats,
+      isNearLimit,
+      limits: {
+        dailyTokens: 14000,
+        maxRequestsPerDay: 20,
+      },
+      recommendations: isNearLimit ? [
+        'Consider using Gemini API for additional scoring',
+        'Reduce job scoring to top 10 matches only',
+        'Use simpler scoring prompts to save tokens'
+      ] : []
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Usage stats failed', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
 });
 
 // Advanced matching endpoints
