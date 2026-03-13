@@ -7,6 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  skills            String[]
+  experienceLevel   String   @default("mid")
+  locationPreference String[]
+  salaryMin         Int?
+  salaryMax         Int?
+  companySize       String?
+  industry          String[]
+  remotePreference  String   @default("remote")
+  matchingWeights   Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 model Job {
   id           String       @id @default(cuid())
   externalId   String       @unique

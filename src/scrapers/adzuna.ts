@@ -13,9 +13,9 @@ export async function scrapeAdzuna(): Promise<RawJob[]> {
   const url = `https://api.adzuna.com/v1/api/jobs/in/search/1`;
 
   const queries = [
-    'nodejs backend developer junior',
-    'full stack developer fresher',
-    'frontend react developer junior',
+    'nodejs backend developer',
+    'full stack developer',
+    'react developer',
   ];
 
   try {
@@ -26,8 +26,8 @@ export async function scrapeAdzuna(): Promise<RawJob[]> {
           app_key: appKey,
           where: 'India',
           what,
-          results_per_page: 5,
-          max_days_old: 1,
+          results_per_page: 10,
+          max_days_old: 7,
         },
       })
     );

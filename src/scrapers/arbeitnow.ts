@@ -25,9 +25,8 @@ export async function scrapeArbeitnow(): Promise<RawJob[]> {
       return true;
     });
 
-    // Remote only, slice to 20
+    // Slice to 20
     return unique
-      .filter((job: any) => job.remote === true)
       .slice(0, 20)
       .map((job: any) => ({
         externalId: `arbeitnow-${job.slug}`,
