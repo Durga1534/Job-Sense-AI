@@ -23,7 +23,7 @@ export class JobMatcherService {
         min: user.salaryMin || 0,
         max: user.salaryMax || 200000,
       },
-      companySize: user.companySize as any || undefined,
+      companySize: (user.companySize as any) || undefined,
       industry: user.industry || [],
       remotePreference: (user.remotePreference as any) || 'remote',
     };

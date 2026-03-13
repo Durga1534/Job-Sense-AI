@@ -1,5 +1,13 @@
 import axios from 'axios';
-import redis from '../cache/redis';
+import Redis from 'ioredis';
+
+const redis = new Redis(process.env.REDIS_URL || '', {
+  family: 0,
+});
+
+redis.on('error', (err) => {
+  console.error('Redis error', err);
+});
 
 export const USER_AGENTS = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
