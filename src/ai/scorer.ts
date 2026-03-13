@@ -1,6 +1,7 @@
 import { RawJob, JobScore } from '@/types';
 import { callAI } from './client';
 import { MY_RESUME } from './resume';
+import { isFresherJob, extractExperienceLevel } from '../utils/jobFilter';
 import { z } from 'zod';
 
 const jobScoreSchema = z.object({
@@ -14,6 +15,36 @@ const jobScoreSchema = z.object({
 });
 
 export async function scoreJob(job: RawJob): Promise<JobScore> {
+  // Pre-filter for fresher jobs to save tokens
+  const isFresherFriendly = isFresherJob(job.title, job.description, job.requirements);
+  const experienceLevel = extractExperienceLevel(job.title, job.description, job.requirements);
+  
+  // Auto-skip experienced jobs without AI call
+  if (experienceLevel === '3+') {
+    return {
+      score: 20,
+      matchLevel: 'SKIP',
+      matchingSkills: [],
+      missingSkills: [],
+      experienceGap: 'Requires 3+ years experience',
+      whyApply: 'Job requires too much experience',
+      salaryFit: 'Not applicable',
+    };
+  }
+  
+  // Auto-weak 2-year jobs
+  if (experienceLevel === '2') {
+    return {
+      score: 40,
+      matchLevel: 'WEAK', 
+      matchingSkills: [],
+      missingSkills: [],
+      experienceGap: 'Requires 2 years experience',
+      whyApply: 'Experience requirement may be challenging',
+      salaryFit: 'Not applicable',
+    };
+  }
+  
   // Truncate job description to save tokens
   const truncatedJob = {
     ...job,
@@ -36,14 +67,16 @@ Salary: ${truncatedJob.salaryMin || 'Not specified'} - ${truncatedJob.salaryMax 
 Location: ${truncatedJob.location}
 Remote: ${truncatedJob.remote}
 Description: ${truncatedJob.description}
+Fresher Friendly: ${isFresherFriendly}
 
 RULES:
-- 3+ years exp = SKIP (max 25)
-- 2 years exp = WEAK (max 45)  
-- 0-1 years/fresher = score normally
+- This is a FRESHER (0 years) candidate
+- Only award STRONG for 0-1 years experience jobs
+- 2 years exp = WEAK (max 45) - NEVER STRONG
 - Salary <6L or >20L = "Out of range"
 - Remote/Bangalore = boost score
 - Related skills count (Node.js→Backend, React→Frontend)
+- For STRONG: must be fresher-friendly AND 3+ skills match AND salary in range
 
 Return JSON:
 ${JSON.stringify(jobScoreSchema.shape, null, 2)}`;

@@ -33,7 +33,8 @@ export async function getTopJobsToday(limit = 5) {
   return prisma.job.findMany({
     where: {
       scrapedAt: { gte: start },
-      matchLevel: { in: ['STRONG', 'GOOD'] },
+      matchLevel: { in: ['STRONG'] }, // Only STRONG = 0-1 years exp jobs
+      matchScore: { gte: 60 }, // Ensure high quality matches
     },
     orderBy: { matchScore: 'desc' },
     take: limit,
