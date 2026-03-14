@@ -47,36 +47,45 @@ export async function scoreJob(job: RawJob): Promise<JobScore> {
   
   // Use heuristic scoring directly to avoid AI issues
   console.log('Using heuristic scoring (AI-free) for job:', job.title);
+  console.log('Job details:', {
+    title: job.title,
+    location: job.location,
+    remote: job.remote,
+    skills: job.skills
+  });
   
   const location = job.location?.toLowerCase() || '';
   const skills = job.skills || [];
   const title = job.title?.toLowerCase() || '';
   
-  let score = 50;
+  let score = 30;
   let matchLevel: 'STRONG' | 'GOOD' | 'WEAK' | 'SKIP' = 'GOOD';
   
-  // Location scoring
+  // Location scoring - more lenient
   if (location.includes('bangalore') || job.remote) {
-    score += 15;
+    score += 20;
   } else if (location.includes('remote')) {
-    score += 10;
+    score += 15;
   } else {
-    score -= 10;
+    score -= 5;
   }
   
-  // Skills matching
+  // Skills matching - more generous
   const matchingSkills = skills.filter(skill => 
-    ['nodejs', 'react', 'typescript', 'postgresql', 'mongodb', 'express'].includes(skill.toLowerCase())
+    ['nodejs', 'react', 'typescript', 'postgresql', 'mongodb', 'express', 'javascript', 'html', 'css'].includes(skill.toLowerCase())
   );
-  score += matchingSkills.length * 8;
+  score += matchingSkills.length * 10;
   
-  // Experience level detection
-  if (title.includes('senior') || title.includes('lead') || title.includes('architect')) {
+  // Experience level detection - more lenient
+  if (title.includes('senior') || title.includes('lead') || title.includes('architect') || title.includes('manager')) {
     matchLevel = 'SKIP';
     score = 20;
-  } else if (title.includes('junior') || title.includes('fresher') || title.includes('entry')) {
+  } else if (title.includes('junior') || title.includes('fresher') || title.includes('entry') || title.includes('trainee')) {
     matchLevel = 'STRONG';
-    score += 10;
+    score += 15;
+  } else {
+    matchLevel = 'GOOD';
+    score += 5;
   }
   
   // Cap the score
