@@ -79,7 +79,7 @@ export async function scoreJob(job: RawJob): Promise<JobScore> {
   if (extractedSkills.length === 0) {
     const skillKeywords = ['nodejs', 'react', 'typescript', 'javascript', 'postgresql', 'mongodb', 'express', 'html', 'css', 'python', 'java'];
     skillKeywords.forEach(keyword => {
-      if (title.includes(keyword) || description.includes(keyword)) {
+      if (title.includes(keyword) || jobDescription.includes(keyword)) {
         extractedSkills.push(keyword);
       }
     });
