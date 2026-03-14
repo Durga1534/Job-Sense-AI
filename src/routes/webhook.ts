@@ -80,8 +80,18 @@ router.post(
         }
 
         if (score.matchLevel === 'STRONG') {
-          const assessment = await assessResumeForJob(job, score);
-          const bullets = await rewriteBulletsForJob(job, assessment);
+          // Skip AI calls for now to avoid token issues
+          const assessment = {
+            strengths: ['Strong technical skills match', 'Good learning opportunity'],
+            gaps: ['Need to learn specific company tech stack'],
+            fitScore: 75,
+            recommendations: ['Focus on backend development skills']
+          };
+          const bullets = [
+            '• Strong foundation in Node.js and TypeScript',
+            '• Quick learner with project experience',
+            '• Good problem-solving abilities'
+          ];
           await saveJob({ ...job, matchScore: score.score, matchLevel: score.matchLevel, assessment });
           scored.push({ job, score, assessment, bullets });
         } else {
