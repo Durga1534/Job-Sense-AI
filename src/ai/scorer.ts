@@ -70,8 +70,10 @@ Rules:
 - Remote/Bangalore = boost
 - Related skills count
 
-Return JSON:
-{"score": 0-100, "matchLevel": "STRONG|GOOD|WEAK|SKIP", "matchingSkills": [], "missingSkills": [], "experienceGap": "", "whyApply": "", "salaryFit": ""}`;
+IMPORTANT: Return ONLY a JSON object. No explanations, no text before/after.
+
+JSON format:
+{"score": number, "matchLevel": "STRONG|GOOD|WEAK|SKIP", "matchingSkills": [], "missingSkills": [], "experienceGap": "", "whyApply": "", "salaryFit": ""}`;
 
   const result = await callAI(prompt, 400); // Further reduced from 800
   return jobScoreSchema.parse(result);

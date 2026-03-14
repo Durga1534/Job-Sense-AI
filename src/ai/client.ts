@@ -31,16 +31,33 @@ export async function callAI(prompt: string, maxTokens = 1000): Promise<any> {
       const text = result.choices[0]?.message?.content || '';
       if (!text) throw new Error('Empty response from AI');
 
-      const cleaned = text.replace(/```json\s*/g, '').replace(/```/g, '').trim();
-      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      // Try to extract JSON from the response
+      let jsonMatch = text.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error(`No JSON found in AI output:\n${cleaned}`);
+        // Fallback: try to find JSON-like structure
+        const lines = text.split('\n');
+        for (const line of lines) {
+          if (line.trim().startsWith('{') || line.trim().includes('"score":')) {
+            const startIdx = line.indexOf('{');
+            const endIdx = line.lastIndexOf('}');
+            if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+              jsonMatch = [line.substring(startIdx, endIdx + 1)];
+              break;
+            }
+          }
+        }
+      }
+      
+      if (!jsonMatch) {
+        console.error('AI Response (no JSON found):', text);
+        throw new Error(`No JSON found in AI output:\n${text.substring(0, 500)}...`);
       }
 
       try {
         return JSON.parse(jsonMatch[0]);
       } catch (err) {
-        throw new Error(`Failed to parse AI output: ${err}\n${cleaned}`);
+        console.error('JSON Parse Error:', jsonMatch[0]);
+        throw new Error(`Failed to parse AI output: ${err}\n${jsonMatch[0]}`);
       }
     } catch (err: any) {
       if (err?.status === 429 && attempt < maxRetries) {
