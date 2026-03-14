@@ -61,17 +61,31 @@ export async function scoreJob(job: RawJob): Promise<JobScore> {
   let score = 30;
   let matchLevel: 'STRONG' | 'GOOD' | 'WEAK' | 'SKIP' = 'GOOD';
   
-  // Location scoring - more lenient
+  // Location scoring - more lenient for Indian cities
   if (location.includes('bangalore') || job.remote) {
-    score += 20;
+    score += 20; 
   } else if (location.includes('remote')) {
-    score += 15;
+    score += 15; 
+  } else if (location.includes('hyderabad') || location.includes('pune') || location.includes('mumbai') || location.includes('delhi') || location.includes('gurgaon') || location.includes('noida')) {
+    score += 10; 
+  } else if (location.includes('india') || location.includes('kerala') || location.includes('patna') || location.includes('bihar')) {
+    score += 5; 
   } else {
-    score -= 5;
+    score += 0; 
   }
   
-  // Skills matching - more generous
-  const matchingSkills = skills.filter(skill => 
+  // Skills matching - more generous and handle empty skills
+  let extractedSkills = [...skills];
+  if (extractedSkills.length === 0) {
+    const skillKeywords = ['nodejs', 'react', 'typescript', 'javascript', 'postgresql', 'mongodb', 'express', 'html', 'css', 'python', 'java'];
+    skillKeywords.forEach(keyword => {
+      if (title.includes(keyword) || description.includes(keyword)) {
+        extractedSkills.push(keyword);
+      }
+    });
+  }
+  
+  const matchingSkills = extractedSkills.filter(skill => 
     ['nodejs', 'react', 'typescript', 'postgresql', 'mongodb', 'express', 'javascript', 'html', 'css'].includes(skill.toLowerCase())
   );
   score += matchingSkills.length * 10;
