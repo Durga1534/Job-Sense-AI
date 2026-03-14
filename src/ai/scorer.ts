@@ -76,5 +76,60 @@ JSON format:
 {"score": number, "matchLevel": "STRONG|GOOD|WEAK|SKIP", "matchingSkills": [], "missingSkills": [], "experienceGap": "", "whyApply": "", "salaryFit": ""}`;
 
   const result = await callAI(prompt, 400); // Further reduced from 800
-  return jobScoreSchema.parse(result);
+  
+  try {
+    return jobScoreSchema.parse(result);
+  } catch (parseError) {
+    console.error('Schema validation failed, using fallback:', parseError);
+    
+    // Fallback scoring based on simple heuristics
+    const location = job.location?.toLowerCase() || '';
+    const skills = job.skills || [];
+    const title = job.title?.toLowerCase() || '';
+    
+    let score = 50;
+    let matchLevel: 'STRONG' | 'GOOD' | 'WEAK' | 'SKIP' = 'GOOD';
+    
+    // Location scoring
+    if (location.includes('bangalore') || job.remote) {
+      score += 15;
+    } else if (location.includes('remote')) {
+      score += 10;
+    } else {
+      score -= 10;
+    }
+    
+    // Skills matching
+    const matchingSkills = skills.filter(skill => 
+      ['nodejs', 'react', 'typescript', 'postgresql', 'mongodb', 'express'].includes(skill.toLowerCase())
+    );
+    score += matchingSkills.length * 8;
+    
+    // Experience level detection
+    if (title.includes('senior') || title.includes('lead') || title.includes('architect')) {
+      matchLevel = 'SKIP';
+      score = 20;
+    } else if (title.includes('junior') || title.includes('fresher') || title.includes('entry')) {
+      matchLevel = 'STRONG';
+      score += 10;
+    }
+    
+    // Cap the score
+    score = Math.min(100, Math.max(0, score));
+    
+    if (score >= 70) matchLevel = 'STRONG';
+    else if (score >= 50) matchLevel = 'GOOD';
+    else if (score >= 30) matchLevel = 'WEAK';
+    else matchLevel = 'SKIP';
+    
+    return {
+      score,
+      matchLevel,
+      matchingSkills,
+      missingSkills: [],
+      experienceGap: matchLevel === 'SKIP' ? 'May require more experience' : 'Potential fit',
+      whyApply: matchLevel === 'SKIP' ? 'Not suitable for fresher' : 'Good opportunity',
+      salaryFit: 'Not specified',
+    };
+  }
 }
