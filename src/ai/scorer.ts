@@ -45,91 +45,55 @@ export async function scoreJob(job: RawJob): Promise<JobScore> {
     };
   }
   
-  // Further truncate to save tokens
-  const truncatedJob = {
-    title: job.title,
-    company: job.company,
-    skills: job.skills?.slice(0, 5).join(', ') || '',
-    salary: `${job.salaryMin || 'Not specified'} - ${job.salaryMax || 'Not specified'}`,
-    location: job.location,
-    remote: job.remote,
-    description: job.description?.slice(0, 300) + (job.description?.length > 300 ? '...' : ''),
-  };
-
-  const prompt = `Score job for FRESHER (0 years):
-
-Skills: Node.js, TypeScript, React, PostgreSQL
-Target: 6-15 LPA, Bangalore/Remote
-
-Job: ${JSON.stringify(truncatedJob)}
-
-Rules:
-- 3+ years = SKIP
-- 2 years = WEAK  
-- 0-1 years = score normally
-- Remote/Bangalore = boost
-- Related skills count
-
-IMPORTANT: Return ONLY a JSON object. No explanations, no text before/after.
-
-JSON format:
-{"score": number, "matchLevel": "STRONG|GOOD|WEAK|SKIP", "matchingSkills": [], "missingSkills": [], "experienceGap": "", "whyApply": "", "salaryFit": ""}`;
-
-  const result = await callAI(prompt, 400); // Further reduced from 800
+  // Use heuristic scoring directly to avoid AI issues
+  console.log('Using heuristic scoring (AI-free) for job:', job.title);
   
-  try {
-    return jobScoreSchema.parse(result);
-  } catch (parseError) {
-    console.error('Schema validation failed, using fallback:', parseError);
-    
-    // Fallback scoring based on simple heuristics
-    const location = job.location?.toLowerCase() || '';
-    const skills = job.skills || [];
-    const title = job.title?.toLowerCase() || '';
-    
-    let score = 50;
-    let matchLevel: 'STRONG' | 'GOOD' | 'WEAK' | 'SKIP' = 'GOOD';
-    
-    // Location scoring
-    if (location.includes('bangalore') || job.remote) {
-      score += 15;
-    } else if (location.includes('remote')) {
-      score += 10;
-    } else {
-      score -= 10;
-    }
-    
-    // Skills matching
-    const matchingSkills = skills.filter(skill => 
-      ['nodejs', 'react', 'typescript', 'postgresql', 'mongodb', 'express'].includes(skill.toLowerCase())
-    );
-    score += matchingSkills.length * 8;
-    
-    // Experience level detection
-    if (title.includes('senior') || title.includes('lead') || title.includes('architect')) {
-      matchLevel = 'SKIP';
-      score = 20;
-    } else if (title.includes('junior') || title.includes('fresher') || title.includes('entry')) {
-      matchLevel = 'STRONG';
-      score += 10;
-    }
-    
-    // Cap the score
-    score = Math.min(100, Math.max(0, score));
-    
-    if (score >= 70) matchLevel = 'STRONG';
-    else if (score >= 50) matchLevel = 'GOOD';
-    else if (score >= 30) matchLevel = 'WEAK';
-    else matchLevel = 'SKIP';
-    
-    return {
-      score,
-      matchLevel,
-      matchingSkills,
-      missingSkills: [],
-      experienceGap: matchLevel === 'SKIP' ? 'May require more experience' : 'Potential fit',
-      whyApply: matchLevel === 'SKIP' ? 'Not suitable for fresher' : 'Good opportunity',
-      salaryFit: 'Not specified',
-    };
+  const location = job.location?.toLowerCase() || '';
+  const skills = job.skills || [];
+  const title = job.title?.toLowerCase() || '';
+  
+  let score = 50;
+  let matchLevel: 'STRONG' | 'GOOD' | 'WEAK' | 'SKIP' = 'GOOD';
+  
+  // Location scoring
+  if (location.includes('bangalore') || job.remote) {
+    score += 15;
+  } else if (location.includes('remote')) {
+    score += 10;
+  } else {
+    score -= 10;
   }
+  
+  // Skills matching
+  const matchingSkills = skills.filter(skill => 
+    ['nodejs', 'react', 'typescript', 'postgresql', 'mongodb', 'express'].includes(skill.toLowerCase())
+  );
+  score += matchingSkills.length * 8;
+  
+  // Experience level detection
+  if (title.includes('senior') || title.includes('lead') || title.includes('architect')) {
+    matchLevel = 'SKIP';
+    score = 20;
+  } else if (title.includes('junior') || title.includes('fresher') || title.includes('entry')) {
+    matchLevel = 'STRONG';
+    score += 10;
+  }
+  
+  // Cap the score
+  score = Math.min(100, Math.max(0, score));
+  
+  if (score >= 70) matchLevel = 'STRONG';
+  else if (score >= 50) matchLevel = 'GOOD';
+  else if (score >= 30) matchLevel = 'WEAK';
+  else matchLevel = 'SKIP';
+  
+  return {
+    score,
+    matchLevel,
+    matchingSkills,
+    missingSkills: [],
+    experienceGap: matchLevel === 'SKIP' ? 'May require more experience' : 'Potential fit',
+    whyApply: matchLevel === 'SKIP' ? 'Not suitable for fresher' : 'Good opportunity',
+    salaryFit: 'Not specified',
+  };
 }
