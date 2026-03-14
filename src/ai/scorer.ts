@@ -57,6 +57,7 @@ export async function scoreJob(job: RawJob): Promise<JobScore> {
   const location = job.location?.toLowerCase() || '';
   const skills = job.skills || [];
   const title = job.title?.toLowerCase() || '';
+  const jobDescription = job.description?.toLowerCase() || ''; // ✅ Fix: declared jobDescription
   
   let score = 30;
   let matchLevel: 'STRONG' | 'GOOD' | 'WEAK' | 'SKIP' = 'GOOD';
