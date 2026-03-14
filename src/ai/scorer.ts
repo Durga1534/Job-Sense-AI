@@ -82,10 +82,13 @@ export async function scoreJob(job: RawJob): Promise<JobScore> {
   // Cap the score
   score = Math.min(100, Math.max(0, score));
   
-  if (score >= 70) matchLevel = 'STRONG';
-  else if (score >= 50) matchLevel = 'GOOD';
-  else if (score >= 30) matchLevel = 'WEAK';
+  // More lenient match levels for fresher jobs
+  if (score >= 60) matchLevel = 'STRONG';  
+  else if (score >= 40) matchLevel = 'GOOD';   
+  else if (score >= 25) matchLevel = 'WEAK';   
   else matchLevel = 'SKIP';
+  
+  console.log(`Job: ${job.title} - Score: ${score} - Level: ${matchLevel}`);
   
   return {
     score,
