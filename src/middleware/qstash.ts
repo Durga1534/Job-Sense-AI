@@ -14,14 +14,14 @@ export function verifyQStash(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
-  // Convert Buffer to string for QStash verification
+  // Convert Buffer to Uint8Array for QStash verification
   const body = req.body;
-  const bodyAsString = body instanceof Buffer ? body.toString('utf8') : body;
+  const bodyAsUint8Array = body instanceof Buffer ? new Uint8Array(body) : body;
 
-  // Create a new request object with string body
+  // Create a new request object with Uint8Array body
   const reqForVerification = {
     ...req,
-    body: bodyAsString,
+    body: bodyAsUint8Array,
   };
 
   receiver
