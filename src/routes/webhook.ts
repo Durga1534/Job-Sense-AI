@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import express from 'express';
 import { verifyQStash } from '../middleware/qstash';
 import { rateLimit } from '../middleware/arcjet';
 import { runAllScrapers } from '../scrapers';
@@ -48,6 +49,7 @@ router.post(
   '/trigger',
   verifyQStash,
   rateLimit,
+  express.json(), // Parse JSON after QStash verification
   async (req, res) => {
     const start = new Date();
     console.log('pipeline start', start.toISOString());

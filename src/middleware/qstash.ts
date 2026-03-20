@@ -14,11 +14,21 @@ export function verifyQStash(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  // Convert Buffer to string for QStash verification
+  const body = req.body;
+  const bodyAsString = body instanceof Buffer ? body.toString('utf8') : body;
+
+  // Create a new request object with string body
+  const reqForVerification = {
+    ...req,
+    body: bodyAsString,
+  };
+
   receiver
-    .verify(req as any)
-    .then((body: any) => {
+    .verify(reqForVerification as any)
+    .then((verifiedBody: any) => {
       // attach parsed body if needed
-      (req as any).qstash = body;
+      (req as any).qstash = verifiedBody;
       next();
     })
     .catch((err: any) => {
