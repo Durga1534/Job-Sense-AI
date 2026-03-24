@@ -7,11 +7,22 @@ const client = Twilio(
 );
 
 async function sendMessage(body: string) {
-  await client.messages.create({
-    body,
-    from: process.env.TWILIO_WHATSAPP_FROM as string,
-    to: process.env.YOUR_WHATSAPP_NUMBER as string,
-  });
+  // Check if WhatsApp credentials are configured
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || 
+      !process.env.TWILIO_WHATSAPP_FROM || !process.env.YOUR_WHATSAPP_NUMBER) {
+    console.log('WhatsApp credentials not configured, skipping notification');
+    return;
+  }
+
+  try {
+    await client.messages.create({
+      body,
+      from: process.env.TWILIO_WHATSAPP_FROM as string,
+      to: process.env.YOUR_WHATSAPP_NUMBER as string,
+    });
+  } catch (error) {
+    console.error('WhatsApp send failed:', error);
+  }
 }
 
 export async function sendDailyDigest(jobs: ScoredJob[], date: Date) {
