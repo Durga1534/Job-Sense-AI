@@ -37,8 +37,6 @@ jobs:
       - run: |
           export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/jobsense"
           npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
       - run: npm test
         env:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/jobsense"
