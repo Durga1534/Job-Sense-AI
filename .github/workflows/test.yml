@@ -33,6 +33,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+        env:
+          ESLINT_USE_FLAT_CONFIG: false
       - run: npx prisma db push --force-reset
         env:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/jobsense"
